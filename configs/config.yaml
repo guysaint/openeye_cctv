@@ -1,0 +1,13 @@
+site_name: "OpenEye CCTV MVP"
+cameras:
+  - name: "front_door"
+    rtsp: "door_sample_cut.mp4"
+    roi: [x1, y1, x2, y2]    # 오늘 계산한 ROI 적용
+    open_threshold: 0.52     # 오늘 계산한 값
+    close_threshold: 0.38    # 오늘 계산한 값
+    open_timeout_sec: 15
+notify:
+  channel: "telegram"
+  telegram:
+    bot_token: "xxx"
+    chat_id: "yyy"
