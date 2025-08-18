@@ -6,10 +6,10 @@
   ],
   "preview_scale": 1.0,
   "roi_xywh": [
-    289,
-    89,
-    246,
-    371
+    277,
+    86,
+    285,
+    381
   ],
   "template_path": "../../assets/chair_template.png"
 }
