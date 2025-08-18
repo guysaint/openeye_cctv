@@ -27,7 +27,27 @@ ALLOWED_BOX_SCALE = 0.7   # 템플릿 크기 대비 박스 크기 스케일 (0.5
 PATCH_SCALE = 1.6         # 템플릿 크기의 배수로 잘라 비교 (1.3~2.0)
 APPEAR_SCORE_THRESH = 0.55  # appearance 임계 (TM_CCOEFF_NORMED)
 APPEAR_FRAMES_REQ = 6       # 연속 프레임 요구 (히스테리시스)
+
 # =====================
+def best_match_local(frame_gray, templates_gray, center, size_wh):
+    W, H = frame_gray.shape[1], frame_gray.shape[0]
+    half_w, half_h = size_wh[0]//2, size_wh[1]//2
+    x1,y1,x2,y2 = clamp_box(center[0], center[1], half_w, half_h, W, H)
+    roi = frame_gray[y1:y2, x1:x2]
+    best = {"score": -1, "top_left": (0,0), "size": None, "deg": 0}
+    for deg, tmpl in templates_gray:
+        if roi.shape[0] < tmpl.shape[0] or roi.shape[1] < tmpl.shape[1]:
+            continue
+        res = cv2.matchTemplate(roi, tmpl, METHOD)
+        _, maxv, _, maxloc = cv2.minMaxLoc(res)
+        if maxv > best["score"]:
+            th, tw = tmpl.shape[:2]
+            # ROI 기준 좌표를 프레임 좌표로 보정
+            best["score"] = maxv
+            best["top_left"] = (maxloc[0] + x1, maxloc[1] + y1)
+            best["size"] = (tw, th)
+            best["deg"] = deg
+    return best, (x1,y1,x2,y2)
 
 def resize_keep_w(img, max_w: int):
     if max_w and img.shape[1] > max_w:
