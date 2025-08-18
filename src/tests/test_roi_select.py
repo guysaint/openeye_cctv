@@ -42,11 +42,11 @@ def resize_keep_w(img, max_w: int) -> Tuple:
 # ---------- 인자 파싱 ----------
 def parse_args():
     p = argparse.ArgumentParser(description="Step 1 — 첫 프레임에서 ROI 선택 후 템플릿 저장")
-    p.add_argument("--video", type=str, default="../img/chair_test_480p_30fps.mp4",
-                   help="영상 경로 또는 0(웹캠). 기본: chair_test_480p_30fps.mp4")
-    p.add_argument("--out-dir", type=str, default="../img",
-                   help="템플릿을 저장할 폴더. 기본: img")
-    p.add_argument("--out-name", type=str, default="../img/chair_template.png",
+    p.add_argument("--video", type=str, default="../../assets/chair_test_480p_30fps.mp4",
+                   help="영상 경로 또는 0(웹캠). 기본: ../../assets/chair_test_480p_30fps.mp4")
+    p.add_argument("--out-dir", type=str, default="../../assets",
+                   help="템플릿을 저장할 폴더. 기본: assets")
+    p.add_argument("--out-name", type=str, default="chair_template.png",
                    help="템플릿 파일명. 기본: chair_template.png")
     p.add_argument("--maxw", type=int, default=1280,
                    help="미리보기 최대 가로폭(표시 전용 리사이즈). 기본: 1280")

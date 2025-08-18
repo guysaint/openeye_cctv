@@ -1,0 +1,15 @@
+{
+  "video": "../../assets/chair_test_480p_30fps.mp4",
+  "frame_shape_hw": [
+    480,
+    854
+  ],
+  "preview_scale": 1.0,
+  "roi_xywh": [
+    289,
+    89,
+    246,
+    371
+  ],
+  "template_path": "../../assets/chair_template.png"
+}
