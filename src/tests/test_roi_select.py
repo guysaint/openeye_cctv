@@ -52,7 +52,7 @@ def parse_args():
                    help="영상 경로 또는 0(웹캠). 기본: ../../assets/usb_test2.png")
     p.add_argument("--out-dir", type=str, default="../../assets",
                    help="템플릿을 저장할 폴더. 기본: assets")
-    p.add_argument("--out-name", type=str, default="usb_test2.jpg",
+    p.add_argument("--out-name", type=str, default="griptok_test.jpg",
                    help="템플릿 파일명. 기본: usb_test.jpg")
     p.add_argument("--maxw", type=int, default=1280,
                    help="미리보기 최대 가로폭(표시 전용 리사이즈). 기본: 1280")
