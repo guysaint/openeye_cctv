@@ -80,9 +80,13 @@ def edges_clean(
 # ---------------- 메인 ----------------
 def parse_args():
     p = argparse.ArgumentParser(description="Edge-based template matching with FPS scheduler")
-    p.add_argument("--video", type=str, default="../../assets/chair_test_480p_30fps.mp4",
+    # p.add_argument("--video", type=str, default="../../assets/chair_test_480p_30fps.mp4",
+    #                help="영상 경로 또는 0(웹캠). 기본: ....//assets/chair_test_480p_30fps.mp4")
+    # p.add_argument("--template", type=str, default="../../assets/chair_template.png",
+    #                help="템플릿 이미지 경로 (의자 ROI). 기본: chair_template.png")
+    p.add_argument("--video", type=str, default=1,
                    help="영상 경로 또는 0(웹캠). 기본: ....//assets/chair_test_480p_30fps.mp4")
-    p.add_argument("--template", type=str, default="../../assets/chair_template.png",
+    p.add_argument("--template", type=str, default="../../assets/usb_test2.jpg",
                    help="템플릿 이미지 경로 (의자 ROI). 기본: chair_template.png")
     p.add_argument("--maxw", type=int, default=1280,
                    help="프레임 표시/처리용 최대 가로폭 (속도/가독성). 기본: 1280")

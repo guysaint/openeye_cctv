@@ -7,10 +7,12 @@ import cv2, numpy as np, time, math
 from typing import Tuple
 
 # ===== 사용자 설정 =====
-SOURCE = "../../assets/chair_test_480p_30fps.mp4"   # 0 이면 웹캠, 아니면 영상 경로
-TEMPLATE_PATH = "../../assets/chair_template.png"   # 기준 템플릿(의자 정상 상태, 작게 잘라서 저장)
-
-FRAME_MAX_W      = 720     # 입력 프레임을 이 너비로 축소(0이면 원본)
+#SOURCE = "../../assets/chair_test_480p_30fps.mp4"   # 0 이면 웹캠, 아니면 영상 경로
+#SOURCE = "../../assets/usb_test.mov"
+SOURCE = 1
+#TEMPLATE_PATH = "../../assets/chair_template.png"   # 기준 템플릿(의자 정상 상태, 작게 잘라서 저장)
+TEMPLATE_PATH = "../../assets/usb_test2.jpg"
+FRAME_MAX_W      = 0     # 입력 프레임을 이 너비로 축소(0이면 원본)
 ANALYZE_EVERY    = 1        # N프레임마다 분석(1=매프레임, 2=절반 등)
 
 # --- 위치 판정(허용 박스) ---
@@ -220,6 +222,7 @@ def main():
 
       
         # 신뢰 낮거나 오클루전이면 '중심 업데이트 보류'
+        occluded = False
         hold = (score < MIN_TRUST_SCORE) or occluded
         use_center = c_raw
         if hold:
@@ -308,11 +311,11 @@ def main():
         # 허용 박스(노랑)
         cv2.rectangle(vis, (x1a,y1a), (x2a,y2a), (0,255,255), 2)
         # 검색창(보라)
-        sx1,sy1,sx2,sy2 = search_box
-        cv2.rectangle(vis, (sx1,sy1), (sx2,sy2), (160,100,255), 1)
+        #sx1,sy1,sx2,sy2 = search_box
+        #cv2.rectangle(vis, (sx1,sy1), (sx2,sy2), (160,100,255), 1)
         # 패치 박스(청록)
-        px1,py1,px2,py2 = curr_box
-        cv2.rectangle(vis, (px1,py1), (px2,py2), (50,200,200), 1)
+        #px1,py1,px2,py2 = curr_box
+        #cv2.rectangle(vis, (px1,py1), (px2,py2), (50,200,200), 1)
 
         # 중심점/홈 표시
         cv2.circle(vis, home, 5, (255,255,0), -1)

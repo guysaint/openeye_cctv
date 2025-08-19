@@ -1,0 +1,15 @@
+{
+  "video": 1,
+  "frame_shape_hw": [
+    1080,
+    1920
+  ],
+  "preview_scale": 0.6666666666666666,
+  "roi_xywh": [
+    888,
+    490,
+    264,
+    115
+  ],
+  "template_path": "../../assets/usb_test2.jpg"
+}
