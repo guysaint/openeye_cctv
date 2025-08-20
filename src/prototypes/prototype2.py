@@ -2,13 +2,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Multi-object local-template monitor
-- Matches multiple templates (USB + GripTok + any others) in a single camera stream.
-- Flags "pattern deviation" when position or appearance leaves allowed bounds with hysteresis + grace.
-- Designed to be EASY to extend: just edit OBJECTS below, or drop images into AUTOLOAD_DIR.
+멀티 객체 로컬-템플릿 모니터
+	- 단일 카메라 스트림에서 여러 템플릿(USB, 그립톡, 기타 등)을 동시에 매칭합니다.
+	- 위치나 외형이 허용 범위를 벗어나면, 히스테리시스와 유예(grace) 조건을 적용해 **“패턴 이탈”**로 표시합니다.
+	- 확장하기 쉽게 설계되었습니다: 아래 OBJECTS만 수정하거나, 이미지를 AUTOLOAD_DIR에 넣으면 됩니다.
 
-Controls:
-  ESC : quit
+조작키:
+	- ESC : 종료
 """
 
 import cv2
@@ -19,49 +19,52 @@ import os
 from typing import Tuple, Dict, Any, List
 
 # =========================
-# User configuration
+# 사용자 설정
 # =========================
-SOURCE = 1  # camera index or video file path
+SOURCE = 1  # 내부 카메라(0), 외부 카메라(1), 카메라 경로
 
-# Option A) Explicit list of tracked objects (recommended for clarity)
+# 옵션 1) 추적할 객체를 직접 지정 (명확성을 위해 권장)
 OBJECTS: List[Dict[str, Any]] = [
     {"name": "usb",     "template_path": "../../assets/usb_test2.jpg",    "color": (0, 255, 0)},
     {"name": "griptok", "template_path": "../../assets/griptok_test.jpg", "color": (255, 128, 0)},
 ]
 
-# Option B) Autoload all templates in a folder (png/jpg). If not used, set to "".
-# Files will be tracked by their filename (without extension).
+# 옵션 2) 폴더 내 모든 템플릿 자동 불러오기 (png/jpg). 사용하지 않으려면 "" 로 설정.
+# 파일은 확장자를 제외한 파일 이름으로 추적됨.
 AUTOLOAD_DIR = ""  # e.g., "assets/templates_autoload"
 
-# Frame & preprocessing
+# 영상 프레임 & 전처리 단계
 FRAME_MAX_W = 0
-STAB_SCALE = 0.0  # 0 = off; try 0.5~0.7 if the camera shakes a lot
+STAB_SCALE = 0.0  # 0 = 꺼짐; 카메라가 많이 흔들리면 0.5~0.7 시도.
 BLUR_K = 3
 
-# Template rotations to test (degrees). Use [0] if rotation is fixed.
+# 템플릿을 회전시켜 비교할 각도를 도(degree) 단위로 지정
+# 예: [0, 90, 180, 270] → 0도, 90도, 180도, 270도 회전된 템플릿과 비교
+# 만약 템플릿 회전이 필요 없는 경우에는 [0] 으로 설정.
 ROT_DEGS = [0, -10, +10, -20, +20]
 
 # Matching
 METHOD = cv2.TM_CCOEFF_NORMED
-MIN_TRUST_SCORE = 0.35  # minimum template confidence to accept new match
+MIN_TRUST_SCORE = 0.35  # 새로운 매칭 결과를 받아들이기 위한 최소 템플릿 신뢰도(confidence) 기준값.
+                        # 예: 0.8 → 매칭 신뢰도가 0.8 이상일 때만 새로운 매칭으로 인정.
 
-# Windows/patches
-ALLOWED_BOX_SCALE = 1.0   # allowed deviation box = tw0/th0 * this scale around HOME
-SEARCH_WIN_SCALE = 2.2    # local search window scale
-PATCH_SCALE = 1.2         # appearance patch scale (relative to template w/h)
+# 윈도우(Window) 또는 패치(Patch) 단위 설정
+ALLOWED_BOX_SCALE = 0.2   # HOME 주변에서 허용되는 위치 편차 박스 크기 (tw0/th0 × scale)
+SEARCH_WIN_SCALE = 2.2    # 로컬 검색 윈도우 크기 배율
+PATCH_SCALE = 1.2         # 템플릿 가로/세로 대비 외형 패치 크기 배율
 
-# Motion gate (optional): ignore position deviation while motion in allowed/home box is large
+# 모션 게이트(옵션): HOME/허용 박스 내 큰 움직임 시 위치 편차 무시
 MOTION_GATE = True
 MORPH_K = 5
-MOTION_AREA_THRESH = 0.05  # fraction of foreground pixels in allowed box to consider "occluded"
+MOTION_AREA_THRESH = 0.05  # 허용 박스 내 전경 픽셀 비율이 임계값 이상이면 '가려짐(occluded)'으로 간주
 
-# Hysteresis & timing
-EMA_ALPHA = 0.35           # Exponential moving average weight for center smoothing
-DEVIATE_FRAMES_REQ = 3     # number of consecutive deviated frames to trigger strong_deviate
+# 히스테리시스 및 타이밍 설정
+EMA_ALPHA = 0.35           # 중심 좌표 보정을 위한 지수 이동 평균 가중치
+DEVIATE_FRAMES_REQ = 3     # strong_deviate 발생 조건: 연속 편차 프레임 수
 APPEAR_FRAMES_REQ = 3
-GRACE_SECS = 2.0           # time to return before alert
+GRACE_SECS = 2.0           # 알림 발생 전 복귀 허용 시간
 
-ANALYZE_EVERY = 1          # process every Nth frame (for CPU saving)
+ANALYZE_EVERY = 2          # CPU 절약을 위해 N번째 프레임마다 처리
 
 WINDOW_NAME = "multi_template_monitor"
 
@@ -142,7 +145,8 @@ def crop_patch(gray: np.ndarray, center: Tuple[int, int], size: Tuple[int, int])
 
 
 def stabilize_ecc(prev_small: np.ndarray, curr_small: np.ndarray) -> np.ndarray:
-    # Rigid transform (rotation+translation) approx with ECC
+    # ECC 알고리즘을 사용하여 강체 변환(회전 + 평행이동)을 근사적으로 계산.
+    # 즉, 템플릿과 영상이 회전되거나 위치가 이동한 경우에도 일치하도록 맞춤.
     warp_mode = cv2.MOTION_EUCLIDEAN
     warp_matrix = np.eye(2, 3, dtype=np.float32)
     criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 50, 1e-5)
@@ -158,12 +162,14 @@ def stabilize_ecc(prev_small: np.ndarray, curr_small: np.ndarray) -> np.ndarray:
 def is_valid_frame(f):
     return f is not None and getattr(f, 'size', 0) > 0 and f.shape[1] > 0 and f.shape[0] > 0
 # =========================
-# Object loader
+# # 객체 로더(Object loader): 템플릿 파일이나 폴더에서 객체 이미지를 불러옮.
+# 추적할 객체를 자동 또는 수동으로 등록하는 데 사용.
 # =========================
 def load_objects() -> List[Dict[str, Any]]:
     objs: List[Dict[str, Any]] = []
 
-    # A) Explicit list
+    # A) 명시적 목록: 추적할 객체를 코드에서 직접 지정하는 방식.
+    # 예) OBJECTS = ["usb.png", "griptok.png"]
     for cfg in OBJECTS:
         path = cfg["template_path"]
         timg = cv2.imread(path)
@@ -187,7 +193,8 @@ def load_objects() -> List[Dict[str, Any]]:
             "appear_run": 0
         })
 
-    # B) Autoload folder (optional). Skips duplicates by name.
+    # B) 자동 불러오기 폴더(옵션): 지정된 폴더에서 템플릿을 자동으로 불러옮.
+    # 파일 이름이 같은 경우(중복)는 건너뜀.
     if AUTOLOAD_DIR and os.path.isdir(AUTOLOAD_DIR):
         for fp in sorted(glob.glob(os.path.join(AUTOLOAD_DIR, "*.*"))):
             if not fp.lower().endswith((".png", ".jpg", ".jpeg", ".bmp", ".webp")):
@@ -231,7 +238,8 @@ def main():
     if not objects:
         raise SystemExit("No templates loaded. Check OBJECTS or AUTOLOAD_DIR.")
 
-    # First valid frame (macOS/Continuity Camera can yield empty frames initially)
+    # 첫 번째 유효 프레임: macOS/Continuity Camera의 경우 초기에는 빈 프레임이 나올 수 있으므로
+    # 실제 영상 데이터가 들어오기 시작한 시점을 기준으로 처리합니다.
     first = None
     for _ in range(100):
         ok, f = cap.read()
@@ -245,7 +253,8 @@ def main():
         raise SystemExit("Camera opened but returned empty/invalid frames. Try a different SOURCE index or ensure permissions.")
     first_fg = preprocess_for_matching(first)
 
-    # Initialize homes per object
+    # 객체별 기준 위치(Home) 초기화:
+    # 각 객체마다 추적의 기준점(Home 위치)을 설정하여 이후 위치 편차를 계산할 수 있도록 함.
     for obj in objects:
         bm = best_match_global(first_fg, obj["templates_gray"])
         top_left, score, (tw, th) = bm["top_left"], bm["score"], bm["size"]
@@ -256,13 +265,18 @@ def main():
         obj["ema_center"] = home
         obj["tw0"], obj["th0"] = tw, th
 
-        # appearance/home patch
+        # 외형/홈 패치(appearance/home patch):
+        # 객체의 외형(appearance)과 기준 위치(Home) 주변을 잘라낸 작은 영역(patch).
+        # 이 패치는 객체의 변화나 위치 이탈을 감지하는 데 활용.
         home_patch, _ = crop_patch(first_fg, home, (int(PATCH_SCALE * tw), int(PATCH_SCALE * th)))
         if home_patch.size == 0:
             raise SystemExit(f"[{obj['name']}] home_patch crop failed — reduce PATCH_SCALE.")
         obj["home_patch"] = home_patch
 
-    # Background subtractor & morphology (shared)
+    # 배경 제거기 & 형태학적 처리(공용):
+    # 영상에서 움직이는 객체를 분리하기 위해 배경을 제거(Background Subtraction)하고,
+    # 노이즈 제거 및 영역 보정을 위해 형태학적 연산(Morphology)을 적용.
+    # 이 설정은 모든 객체 추적에 공통으로 사용.
     bg = None
     kernel = None
     if MOTION_GATE:
@@ -286,7 +300,7 @@ def main():
             continue
         fg = preprocess_for_matching(frame)
 
-        # Optional ECC stabilization
+        # 선택적 ECC 기반 프레임 안정화
         if STAB_SCALE and STAB_SCALE > 0:
             small = cv2.resize(fg, None, fx=STAB_SCALE, fy=STAB_SCALE, interpolation=cv2.INTER_AREA)
             if prev_small is not None:
@@ -295,7 +309,10 @@ def main():
                 frame = cv2.warpAffine(frame, warp, (frame.shape[1], frame.shape[0]), flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE)
             prev_small = small
 
-        # Motion gate mask (shared)
+        # 모션 게이트 마스크(Motion gate mask, 공용):
+        # 영상에서 객체가 움직일 수 있는 영역을 제한하는 마스크.
+        # 이 마스크를 벗어난 움직임은 무시되거나 편차로 간주되며,
+        # 모든 객체 추적에 공통으로 적용.
         m = None
         if MOTION_GATE and bg is not None:
             m = bg.apply(frame)
@@ -316,7 +333,9 @@ def main():
             tw0, th0 = obj["tw0"], obj["th0"]
             home_patch = obj["home_patch"]
 
-            # Local search window around EMA
+            # EMA(지수 이동 평균, Exponential Moving Average) 위치를 중심으로 한 로컬 검색 윈도우:
+            # 객체의 예상 중심 좌표(EMA)를 기준으로 주변 영역을 탐색 창(window)으로 설정하여,
+            # 불필요한 전체 탐색을 줄이고 효율적으로 객체를 추적.
             allowed_half_w = int(ALLOWED_BOX_SCALE * tw0)
             allowed_half_h = int(ALLOWED_BOX_SCALE * th0)
             search_half_w = int(SEARCH_WIN_SCALE * tw0)
@@ -336,14 +355,18 @@ def main():
             else:
                 match_center = center_from(top_left, (tw, th))
 
-            # EMA update
+            # EMA 업데이트(Exponential Moving Average update):
+            # 객체 중심 좌표를 부드럽게 추적하기 위해, 이전 값과 새 값을 지수 이동 평균 방식으로 갱신.
             ema_center = (
                 int(EMA_ALPHA * match_center[0] + (1 - EMA_ALPHA) * ema_center[0]),
                 int(EMA_ALPHA * match_center[1] + (1 - EMA_ALPHA) * ema_center[1])
             )
             obj["ema_center"] = ema_center
 
-            # Occlusion gate via motion ratio inside allowed box around HOME
+            # 가려짐(occlusion) 게이트: HOME 주변 허용 박스 내부의 모션 비율로 판단.
+            # 허용 박스 안에서 전경(움직임) 픽셀이 차지하는 비율이 임계값을 넘으면
+            # 해당 프레임을 '가려짐' 상태로 간주하고 위치 편차 판단을 일시적으로 보류.
+            # 예) motion_ratio > 0.4 → occluded = True
             occluded = False
             x1a, y1a, x2a, y2a = clamp_box(home[0], home[1], allowed_half_w, allowed_half_h, W, H)
             if MOTION_GATE and m is not None:
@@ -351,13 +374,17 @@ def main():
                 move_ratio = float(m_crop.sum()) / (255.0 * max(1, m_crop.size))
                 occluded = (move_ratio >= MOTION_AREA_THRESH)
 
-            # Position deviation (if not occluded)
+            # 위치 편차(Position deviation): 
+            # 객체가 가려지지(occluded) 않았을 때만 계산.
+            # 현재 객체 중심과 기준 위치(Home) 사이의 거리를 비교하여, 허용 범위를 벗어나면 편차로 판정.
             if occluded:
                 pos_deviated = False
             else:
                 pos_deviated = not (x1a <= ema_center[0] <= x2a and y1a <= ema_center[1] <= y2a)
 
-            # Appearance deviation
+            # 외형 편차(Appearance deviation):
+            # 객체의 현재 외형(appearance patch)과 기준 외형(Home patch)을 비교하여 유사도가 일정 기준 이하로 떨어지면 '외형 편차'로 판정.
+            # 즉, 모양·패턴 변화까지 감지하여 단순 위치 이탈 외에도 이상 여부를 판단.
             curr_patch, curr_box = crop_patch(fg, ema_center, (int(PATCH_SCALE * tw0), int(PATCH_SCALE * th0)))
             app_score = 1.0
             app_deviated = False
@@ -367,7 +394,9 @@ def main():
                 app_score = maxv if METHOD in (cv2.TM_CCOEFF_NORMED, cv2.TM_CCORR_NORMED) else (1.0 - minv)
                 app_deviated = (app_score < 0.55)  # default threshold for appearance difference
 
-            # Hysteresis counters
+            # 히스테리시스 카운터(Hysteresis counters):
+            # 객체 상태(정상 ↔ 편차)를 판정할 때 즉시 바뀌지 않도록, 연속된 프레임 수를 카운트하여 안정성을 유지.
+            # 예: 편차가 몇 프레임 이상 지속될 때만 '편차 발생'으로 확정.
             deviated_now = pos_deviated or app_deviated
             obj["deviate_run"] = obj["deviate_run"] + 1 if deviated_now else 0
             obj["appear_run"] = obj["appear_run"] + 1 if app_deviated else 0
@@ -390,7 +419,10 @@ def main():
                     alert = True
                     global_alert = True
 
-            # Visuals (per object)
+            # 시각화(객체별, Visuals per object):
+            # 각 객체에 대해 추적 상태를 화면에 표시하는 기능.
+            # 예) 객체의 위치 박스, 중심 좌표, 편차 여부, 가려짐 상태 등을 색상이나 도형으로 표시.
+            # 이렇게 하면 객체별 상태를 직관적으로 모니터링할 수 있음.
             if tw and th and tw > 0 and th > 0:
                 cv2.rectangle(vis, top_left, (top_left[0] + tw, top_left[1] + th), color, 2)
             cv2.rectangle(vis, (x1a, y1a), (x2a, y2a), (0, 255, 255), 2)
