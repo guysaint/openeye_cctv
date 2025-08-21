@@ -440,9 +440,9 @@ def main():
                 cv2.putText(vis, f"[{name}] ALERT: Pattern deviated!", (20, ybase + 22),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
-        if global_alert:
-            cv2.putText(vis, "GLOBAL ALERT: Some pattern(s) deviated!",
-                        (20, 15 + len(objects)*50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 3)
+        #if global_alert:
+        #    cv2.putText(vis, "GLOBAL ALERT: Some pattern(s) deviated!",
+        #                (20, 15 + len(objects)*50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 3)
 
         cv2.imshow(WINDOW_NAME, vis)
         if cv2.waitKey(1) & 0xFF == 27:
