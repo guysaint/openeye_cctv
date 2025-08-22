@@ -97,6 +97,7 @@ opencv와 yolo를 사용하여 시설물의 패턴을 기억하고 패턴에서 
  <img alt="image" src="assets/prototype2.gif">
 </p>
  ---
+ 
 # 250821 개선
 ## 라즈베리파이로 이식 완료
 # 디오라마로 구성
