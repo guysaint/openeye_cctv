@@ -87,8 +87,14 @@ opencv와 yolo를 사용하여 시설물의 패턴을 기억하고 패턴에서 
 
 ## 현재 상황
  - 캠으로 실시간으로 템플릿 매칭에 성공. usb를 활용해 마치 벨브와 같은 움직임으로 테스트 완료.
+[템플릿 이미지 저장]
 
- [구현] 영상]
+<p align="center">
+  <img src="assets/result/템플릿 이미지 저장1.jpg" width="300" />
+  <img src="assets/result/템플릿 이미지 저장2.jpg" width="300" />
+</p>
+
+ [구현 영상]
  <p align="center">
  <img alt="image" src="assets/prototype.gif">
 </p>
