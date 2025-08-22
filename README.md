@@ -56,9 +56,9 @@ opencv와 yolo를 사용하여 시설물의 패턴을 기억하고 패턴에서 
 - 템플릿 매칭에 사용되는 초록색 네모 박스 영역에 사람이나 물건이 들어오면 의자가 움직이지 않아도 패턴 이탈 감지를 하는 문제가 있음.
 
 [문제 상황 사진]
-
+<p align="center">
 <img alt="image" src="https://github.com/guysaint/openeye_cctv/blob/main/src/tests/problem.png">
-
+</p>
 ### 설정한 목표
 - Before: 템플릿 매칭으로 의자의 위치와 모양(상태)를 인식해서 변경되는 부분을 패턴 이탈 상황으로 감지시킴. 
 - After: 템플릿 매칭을 하기 전에 이미지 전처리를 통해 매칭률을 높이고 roi 영역을 타이트하게 잡아 문제 해결을 시도해보려고 함.
@@ -84,22 +84,32 @@ opencv와 yolo를 사용하여 시설물의 패턴을 기억하고 패턴에서 
 ## 현재 상황
  - 캠으로 실시간으로 템플릿 매칭에 성공. usb를 활용해 마치 벨브와 같은 움직임으로 테스트 완료.
 
- [Demo 영상]
- 
+ [구현] 영상]
+ <p align="center">
  <img alt="image" src="assets/prototype.gif">
-
+</p>
 
 ## 오늘의 목표
 - 한 앵글에 여러가지 물건의 패턴이 가능하도록 시도해보기.
 
 - [결과]
-
+<p align="center">
  <img alt="image" src="assets/prototype2.gif">
-
+</p>
  ---
 # 250821 개선
 ## 라즈베리파이로 이식 완료
-- [Demo]
+# 디오라마로 구성
+[전체 구성]
+<p align="center">
+<img alt="image" src="assets/result/diorama4.png">
+</p>
+[템플릿 이미지]
 
+<p align="center">
+<img alt="image" src="https://raw.githubusercontent.com/guysaint/raspi_openeye_cctv/main/assets/template_img1.jpg"> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <img alt="image" src="https://raw.githubusercontent.com/guysaint/raspi_openeye_cctv/main/assets/template_img2.jpg">
+</p>
+- [구현 영상]
+<p align="center">
 <img alt="image" src="assets/raspi_prototype.gif">
-
+</p>
