@@ -43,8 +43,8 @@ opencv와 yolo를 사용하여 시설물의 패턴을 기억하고 패턴에서 
 - 카메라 화면이 켜지면 'm'을 누르면 템플릿 저장 모드로 들어간다. 이때 카메라 화면은 멈춘 상태가 되고 마우스 드래그를 통해 원하는 갯수 만큼 템플릿을 저장할 수 있다.
 - [roi_select_multi.py 실행화면(라즈베리파이 버전)]
 <p align="center">
-<img alt="image" src="./assets/result/템플릿 이미지 저장1.jpg" width="500">
-<img alt="image" src="./assets/result/템플릿 이미지 저장2.jpg" width="500">
+<img alt="image" src="./assets/result/템플릿 이미지 저장1.jpg" width="300">
+<img alt="image" src="./assets/result/템플릿 이미지 저장2.jpg" width="300">
 </p>
 
 - 마우스를 드래그하고 스페이스 or 엔터를 누르면 저장된다. 'c'를 누르면 템플릿 저장 취소. 템플릿을 다 설정했다면 esc를 눌러 프로그램 종료하면 "../assets/"에 파일이 저장된다.
@@ -69,8 +69,8 @@ opencv와 yolo를 사용하여 시설물의 패턴을 기억하고 패턴에서 
 - 카메라 화면이 켜지면 'm'을 누르면 템플릿 저장 모드로 들어간다. 이때 카메라 화면은 멈춘 상태가 되고 마우스 드래그를 통해 템플릿을 지정할 수 있다.
 - [roi_select_multi.py 실행화면]
 <p align="center">
-<img alt="image" src="./assets/result/템플릿 이미지 저장1.jpg" width="500">
-<img alt="image" src="./assets/result/템플릿 이미지 저장2.jpg" width="500">
+<img alt="image" src="./assets/result/템플릿 이미지 저장1.jpg" width="300">
+<img alt="image" src="./assets/result/템플릿 이미지 저장2.jpg" width="300">
 </p>
 
 - 마우스를 드래그하고 스페이스 or 엔터를 누르면 저장된다. 'c'를 누르면 템플릿 저장 취소. 템플릿을 다 설정했다면 esc를 눌러 프로그램 종료하면 "../assets/"에 파일이 저장된다.
