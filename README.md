@@ -87,7 +87,7 @@ opencv와 yolo를 사용하여 시설물의 패턴을 기억하고 패턴에서 
 ---
 ## 디오라마로 구현
 <p align="center">
-<img alter="image" src="./assets/result/diorama1.png" width=500>
-<img alter="image" src="./assets/result/diorama2.png" width=500>
+<img alter="image" src="./assets/result/diorama1.png" width=300>
+<img alter="image" src="./assets/result/diorama2.png" width=300>
 <img alter="image" src="./assets/result/diorama4.png">
 </p>
